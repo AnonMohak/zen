@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadModel } from './gltf';
 import { mergeGeometries } from 'three/addons/utils/BufferGeometryUtils.js';
 import { BRIDGE, FENCE, PAGODA, SHISHI, TEMPLE, TSUKUBAI, WALL, groundHeight, smoothstep } from './layout';
 import { applyEdoMaterials } from './materials';
@@ -7,8 +7,7 @@ import { mulberry } from './scenery';
 import { withWorldPos } from './shaders';
 import { HORIZON } from './sky';
 
-const loader = new GLTFLoader();
-const load = async (name: string) => (await loader.loadAsync(`${import.meta.env.BASE_URL}models/${name}.glb`)).scene;
+const load = async (name: string) => (await loadModel(name)).scene;
 
 function node(root: THREE.Object3D, name: string) {
   const o = root.getObjectByName(name);
@@ -158,7 +157,7 @@ export function createForest(scene: THREE.Scene, count: number) {
     const t = k / 14;
     const r = 1.7 * (1 - t * 0.82);
     const a = crnd() * Math.PI * 2;
-    const blob = new THREE.IcosahedronGeometry(0.55 + r * 0.6, 1);
+    const blob = new THREE.IcosahedronGeometry(0.55 + r * 0.6, 0);
     blob.scale(1, 0.7, 1);
     blob.translate(Math.cos(a) * r * 0.45, 3.2 + t * 8.2, Math.sin(a) * r * 0.45);
     crownParts.push(blob);
@@ -207,8 +206,9 @@ export function createForest(scene: THREE.Scene, count: number) {
   }
   crowns.count = trunks.count = n;
   crowns.receiveShadow = trunks.receiveShadow = true;
-  crowns.castShadow = true;
+  crowns.userData.noAO = trunks.userData.noAO = true;
   scene.add(crowns, trunks);
+  return [crowns, trunks];
 }
 
 // ---------------------------------------------------------------- distant mountains

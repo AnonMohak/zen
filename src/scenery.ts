@@ -1,12 +1,11 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadModel } from './gltf';
 import { LANTERN, POND, SAND, SAND_ROCKS, WALL, groundHeight } from './layout';
 import { pbr, regrade } from './materials';
 import { stoneDetail, swayVertex, uTime, withWorldPos } from './shaders';
 import { flowerTexture, wallTexture } from './textures';
 
-const loader = new GLTFLoader();
-const load = (name: string) => loader.loadAsync(`${import.meta.env.BASE_URL}models/${name}.glb`);
+const load = loadModel;
 
 function meshes(root: THREE.Object3D) {
   const out: Record<string, THREE.Mesh> = {};
@@ -154,7 +153,8 @@ export async function createRocks(scene: THREE.Scene) {
     const x = POND.cx + Math.cos(a) * POND.rx * e;
     const z = POND.cz + Math.sin(a) * POND.rz * e;
     const s = 0.22 + rnd() * 0.16;
-    rockAt([0, 5, 1, 2][k % 4], x, groundHeight(x, z) - 0.06, z, rnd() * 6.28, [s, s * (0.7 + rnd() * 0.5), s]);
+    const stone = rockAt([0, 5, 1, 2][k % 4], x, groundHeight(x, z) - 0.06, z, rnd() * 6.28, [s, s * (0.7 + rnd() * 0.5), s]);
+    stone.traverse((o) => (o.castShadow = false));
   }
 
   // Flat stepping stones from the sand edge past the lantern.

@@ -39,6 +39,7 @@ export function createPetals(scene: THREE.Scene, spawn: THREE.Vector3[], count =
   const mesh = new THREE.InstancedMesh(geo, mat, count);
   mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
   mesh.frustumCulled = false;
+  mesh.userData.noAO = true;
   scene.add(mesh);
 
   const tint = new THREE.Color();

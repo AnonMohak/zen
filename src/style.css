@@ -15,23 +15,6 @@ body {
   display: block;
 }
 
-#loading {
-  position: fixed;
-  inset: 0;
-  display: grid;
-  place-items: center;
-  background: #f1dcd6;
-  color: #7a5a5f;
-  font-size: 1.1rem;
-  letter-spacing: 0.3em;
-  transition: opacity 2.4s ease;
-}
-
-#loading.done {
-  opacity: 0;
-  pointer-events: none;
-}
-
 .title {
   position: fixed;
   left: 2.2rem;

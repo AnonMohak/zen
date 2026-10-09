@@ -1,14 +1,14 @@
 import * as THREE from 'three';
 import { POND, SAND, groundHeight } from './layout';
 import { pbr } from './materials';
-import { LOW } from './quality';
+import { LOW, Q } from './quality';
 import { withWorldPos } from './shaders';
 
 // Ground: raked white gravel with ripple rings around the rocks, moss islands,
 // moss outside the gravel, and a muddy bowl for the pond. Gravel and moss use
 // Poly Haven scans (gravel_floor, forest_leaves_02), regraded in the shader.
 export function createGround(rockIslands: THREE.Vector3[]) {
-  const geo = new THREE.PlaneGeometry(110, 110, LOW ? 280 : 440, LOW ? 280 : 440);
+  const geo = new THREE.PlaneGeometry(110, 110, LOW ? 200 : 300, LOW ? 200 : 300);
   geo.rotateX(-Math.PI / 2);
   const pos = geo.attributes.position;
   for (let i = 0; i < pos.count; i++) pos.setY(i, groundHeight(pos.getX(i), pos.getZ(i)));
@@ -28,7 +28,7 @@ export function createGround(rockIslands: THREE.Vector3[]) {
     s.uniforms.tMossN = { value: moss.normalMap };
     s.uniforms.tMossR = { value: moss.roughnessMap };
     withWorldPos(s);
-    if (LOW) s.defines = { ...s.defines, GROUND_LOW: '' };
+    if (Q.groundLow) s.defines = { ...s.defines, GROUND_LOW: '' };
     s.fragmentShader = s.fragmentShader
       .replace(
         '#include <common>',

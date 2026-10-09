@@ -2,27 +2,49 @@ import * as THREE from 'three';
 import { Q } from './quality';
 import { swayVertex, uTime, withWorldPos } from './shaders';
 
-const loader = new THREE.TextureLoader();
+// ImageBitmapLoader decodes images off the main thread (TextureLoader decodes
+// them on the main thread at upload). THREE.Cache shares one download per file.
+THREE.Cache.enabled = true;
+const loader = new THREE.ImageBitmapLoader().setOptions({ imageOrientation: 'flipY' });
 const BASE = `${import.meta.env.BASE_URL}textures/`;
-// One texture object per use (each needs its own repeat); the browser cache
-// shares the downloads.
-function tex(file: string, color: boolean) {
-  const t = loader.load(BASE + file);
+const upgrades: (() => void)[] = [];
+
+function loadInto(t: THREE.Texture, url: string) {
+  loader.load(url, (bitmap) => {
+    t.image = bitmap;
+    t.needsUpdate = true;
+  });
+}
+
+// One texture object per use (each needs its own repeat). With `hiFile`, the
+// texture starts at low resolution and swaps in the large image later.
+function tex(file: string, color: boolean, hiFile?: string) {
+  const t = new THREE.Texture();
+  t.flipY = false; // already flipped by the bitmap decoder
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.anisotropy = 8;
+  t.anisotropy = Q.aniso;
   if (color) t.colorSpace = THREE.SRGBColorSpace;
+  loadInto(t, BASE + file);
+  if (hiFile) upgrades.push(() => loadInto(t, BASE + hiFile));
   return t;
+}
+
+// Loads the 2k images once the garden is on screen.
+export function upgradeTextures() {
+  for (const run of upgrades.splice(0)) run();
 }
 
 export type Pbr = { map: THREE.Texture; normalMap: THREE.Texture; roughnessMap: THREE.Texture };
 
 // A Poly Haven texture set. `metres`: real-world size of one tile.
 // Blender models carry UVs in metres, so repeat = 1 / metres.
+// Colour and normal maps start at 1k and upgrade to `res`; roughness stays 1k.
 export function pbr(name: string, metres = 1, res = Q.tex): Pbr {
+  const hi = (map: string) => (res === '1k' ? undefined : `${name}_${map}_${res}.webp`);
   const set = {
-    map: tex(`${name}_diff_${res}.jpg`, true),
-    normalMap: tex(`${name}_nor_${res}.jpg`, false),
-    roughnessMap: tex(`${name}_rough_${res}.jpg`, false),
+    map: tex(`${name}_diff_1k.webp`, true, hi('diff')),
+    normalMap: tex(`${name}_nor_1k.webp`, false, hi('nor')),
+    roughnessMap: tex(`${name}_rough_1k.webp`, false),
   };
   for (const t of Object.values(set)) t.repeat.set(1 / metres, 1 / metres);
   return set;
@@ -55,7 +77,7 @@ function canvasTex(c: HTMLCanvasElement, color = true) {
   const t = new THREE.CanvasTexture(c);
   if (color) t.colorSpace = THREE.SRGBColorSpace;
   t.wrapS = t.wrapT = THREE.RepeatWrapping;
-  t.anisotropy = 8;
+  t.anisotropy = Q.aniso;
   return t;
 }
 

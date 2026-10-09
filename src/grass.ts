@@ -1,12 +1,13 @@
 import * as THREE from 'three';
-import { FENCE, WALL, groundHeight, pondE, sandSdf, templeSdf } from './layout';
+import { FENCE, WALL, groundHeight, pondE, sandSdf, smoothstep, templeSdf } from './layout';
 import { mulberry } from './scenery';
 import { uTime } from './shaders';
 
 // Instanced grass blades on the moss outside the sand, in noisy clumps.
 export function createGrass(scene: THREE.Scene, count = 110000) {
+  const meshes: THREE.InstancedMesh[] = [];
   const h = 1;
-  const geo = new THREE.PlaneGeometry(0.03, h, 1, 4);
+  const geo = new THREE.PlaneGeometry(0.03, h, 1, 3);
   geo.translate(0, h / 2, 0);
   const p = geo.attributes.position;
   const colors: number[] = [];
@@ -43,7 +44,9 @@ export function createGrass(scene: THREE.Scene, count = 110000) {
     );
   };
 
-  const mesh = new THREE.InstancedMesh(geo, mat, count);
+  // Blades are bucketed into 10 m tiles so off-screen tiles are frustum-culled.
+  const TILE = 10;
+  const tiles = new Map<string, { m: THREE.Matrix4[]; c: THREE.Color[] }>();
   const rnd = mulberry(11);
   const m = new THREE.Matrix4();
   const q = new THREE.Quaternion();
@@ -66,16 +69,29 @@ export function createGrass(scene: THREE.Scene, count = 110000) {
     // clumps: denser near the pond and in noisy patches
     const patch = 0.5 + 0.5 * Math.sin(x * 0.9 + Math.sin(z * 0.7) * 2) * Math.sin(z * 1.1 + x * 0.3);
     const nearPond = pe < 1.8 ? 0.35 : 0;
-    if (rnd() > patch * patch + nearPond + 0.12) continue;
+    // Fewer blades far from the garden centre, where fog and the moss texture carry it.
+    const near = 0.3 + 0.7 * smoothstep(32, 14, Math.hypot(x - 1, z));
+    if (rnd() > (patch * patch + nearPond + 0.12) * near) continue;
     const s = 0.05 + rnd() * rnd() * 0.16 + nearPond * 0.18;
     e.set((rnd() - 0.5) * 0.3, rnd() * Math.PI * 2, (rnd() - 0.5) * 0.3);
     q.setFromEuler(e);
     m.compose(new THREE.Vector3(x, groundHeight(x, z) - 0.01, z), q, new THREE.Vector3(1, s, 1));
-    mesh.setMatrixAt(n, m);
-    mesh.setColorAt(n, tint.setHSL(0.15 + rnd() * 0.12, 0.35, 0.7 + rnd() * 0.3));
+    const key = `${Math.floor(x / TILE)},${Math.floor(z / TILE)}`;
+    let tile = tiles.get(key);
+    if (!tile) tiles.set(key, (tile = { m: [], c: [] }));
+    tile.m.push(m.clone());
+    tile.c.push(tint.setHSL(0.15 + rnd() * 0.12, 0.35, 0.7 + rnd() * 0.3).clone());
     n++;
   }
-  mesh.count = n;
-  mesh.receiveShadow = true;
-  scene.add(mesh);
+  for (const tile of tiles.values()) {
+    const mesh = new THREE.InstancedMesh(geo, mat, tile.m.length);
+    tile.m.forEach((mm, i) => mesh.setMatrixAt(i, mm));
+    tile.c.forEach((cc, i) => mesh.setColorAt(i, cc));
+    mesh.computeBoundingSphere();
+    mesh.receiveShadow = true;
+    mesh.userData.noAO = true;
+    scene.add(mesh);
+    meshes.push(mesh);
+  }
+  return meshes;
 }

@@ -4,13 +4,233 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#f3e4da" />
     <title>Zen Garden</title>
+    <!-- Critical styles inline so the first paint is the loading art, not a white page. -->
+    <style>
+      html,
+      body {
+        margin: 0;
+        height: 100%;
+        overflow: hidden;
+        background: #f3e4da;
+      }
+      #loading {
+        position: fixed;
+        inset: 0;
+        z-index: 10;
+        background: #f3e4da;
+        transition: opacity 2.4s ease;
+        font-family: 'Yu Mincho', 'Hiragino Mincho ProN', 'Noto Serif JP', 'Iowan Old Style', Georgia, serif;
+      }
+      #loading.done {
+        opacity: 0;
+        pointer-events: none;
+      }
+      #loading svg.art {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+      }
+      #loading .caption {
+        position: absolute;
+        left: 50%;
+        bottom: 11vh;
+        transform: translateX(-50%);
+        text-align: center;
+        color: #6b4a4e;
+        letter-spacing: 0.5em;
+        font-size: 0.85rem;
+      }
+      #loading .caption b {
+        display: block;
+        font-weight: 400;
+        font-size: 1.7rem;
+        letter-spacing: 0.4em;
+        margin-bottom: 0.9rem;
+        color: #4e3236;
+      }
+      #loading .track {
+        width: min(220px, 50vw);
+        height: 2px;
+        margin: 1.1rem auto 0;
+        background: rgba(110, 70, 75, 0.15);
+        overflow: hidden;
+      }
+      #progress {
+        height: 100%;
+        background: #8e4a50;
+        transform: scaleX(0);
+        transform-origin: left;
+        transition: transform 0.4s ease;
+      }
+      #loading .petal {
+        position: absolute;
+        top: -4vh;
+        width: 14px;
+        height: 10px;
+        border-radius: 80% 0 70% 30%;
+        background: radial-gradient(circle at 30% 30%, #fff3f5, #f2b6c4 70%);
+        opacity: 0.85;
+        animation: fall linear infinite;
+      }
+      @keyframes fall {
+        0% {
+          transform: translate(0, 0) rotate(0deg);
+        }
+        50% {
+          transform: translate(9vw, 55vh) rotate(260deg);
+        }
+        100% {
+          transform: translate(4vw, 110vh) rotate(520deg);
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        #loading .petal {
+          display: none;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="app"></div>
     <p class="title"><span>庭</span>ZEN GARDEN</p>
     <button id="sound" type="button" aria-pressed="false">Sound off</button>
-    <div id="loading">LOADING</div>
+
+    <div id="loading" role="status" aria-label="Loading the garden">
+      <svg class="art" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+        <defs>
+          <filter id="wash" x="-20%" y="-20%" width="140%" height="140%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="3" seed="4" />
+            <feDisplacementMap in="SourceGraphic" scale="18" />
+            <feGaussianBlur stdDeviation="1.4" />
+          </filter>
+          <filter id="ink" x="-10%" y="-10%" width="120%" height="120%">
+            <feTurbulence type="fractalNoise" baseFrequency="0.09" numOctaves="2" seed="7" />
+            <feDisplacementMap in="SourceGraphic" scale="5" />
+          </filter>
+          <filter id="mist" x="-30%" y="-100%" width="160%" height="300%">
+            <feGaussianBlur stdDeviation="22" />
+          </filter>
+          <filter id="paper">
+            <feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="3" seed="2" />
+            <feColorMatrix values="0 0 0 0 0.45  0 0 0 0 0.35  0 0 0 0 0.3  0 0 0 0.09 0" />
+          </filter>
+          <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#e9d3d6" />
+            <stop offset="0.55" stop-color="#f5e6dc" />
+            <stop offset="1" stop-color="#efe1d2" />
+          </linearGradient>
+          <linearGradient id="fuji" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stop-color="#8fa6c0" />
+            <stop offset="1" stop-color="#c8d2df" stop-opacity="0.2" />
+          </linearGradient>
+          <radialGradient id="bloom" cx="0.4" cy="0.4" r="0.7">
+            <stop offset="0" stop-color="#fff6f7" />
+            <stop offset="0.55" stop-color="#f6c3cf" />
+            <stop offset="1" stop-color="#e58fa6" />
+          </radialGradient>
+          <!-- Five notched sakura petals around a crimson heart. -->
+          <g id="flower">
+            <g fill="url(#bloom)">
+              <path id="p" d="M0 0 C-14 -10 -15 -34 -4 -40 L0 -35 L4 -40 C15 -34 14 -10 0 0Z" />
+              <use href="#p" transform="rotate(72)" />
+              <use href="#p" transform="rotate(144)" />
+              <use href="#p" transform="rotate(216)" />
+              <use href="#p" transform="rotate(288)" />
+            </g>
+            <circle r="6" fill="#c2405f" opacity="0.8" />
+            <g stroke="#b5475f" stroke-width="1.2" opacity="0.7">
+              <path d="M0 0L9 -9M0 0L-10 -6M0 0L-3 12M0 0L11 5M0 0L2 -13" />
+            </g>
+          </g>
+          <g id="bud">
+            <ellipse rx="7" ry="11" fill="#eaa0b3" />
+            <path d="M-5 8 Q0 16 5 8" fill="#7d5a45" />
+          </g>
+        </defs>
+
+        <rect width="1600" height="900" fill="url(#sky)" />
+        <!-- red morning sun -->
+        <circle cx="1220" cy="250" r="118" fill="#e59a98" opacity="0.5" filter="url(#wash)" />
+        <!-- Mt. Fuji with snow cap, then mist bands -->
+        <path d="M760 700 L1060 430 Q1110 392 1160 430 L1500 700 Z" fill="url(#fuji)" opacity="0.75" filter="url(#wash)" />
+        <path
+          d="M1018 468 L1060 430 Q1110 392 1160 430 L1203 468 L1178 476 L1158 458 L1138 482 L1112 456 L1090 480 L1070 460 L1046 478 Z"
+          fill="#f8f4f2"
+          opacity="0.9"
+          filter="url(#wash)"
+        />
+        <ellipse cx="1120" cy="610" rx="520" ry="40" fill="#f6ece6" opacity="0.9" filter="url(#mist)" />
+        <path d="M0 760 Q300 690 620 730 T1200 720 T1600 700 V980 H0 Z" fill="#b7c2a6" opacity="0.45" filter="url(#wash)" />
+        <path d="M0 820 Q400 770 800 800 T1600 790 V980 H0 Z" fill="#9fb092" opacity="0.4" filter="url(#wash)" />
+        <ellipse cx="500" cy="760" rx="700" ry="34" fill="#f5ebe3" opacity="0.8" filter="url(#mist)" />
+
+        <!-- ink-brush cherry branch from the upper left -->
+        <g fill="none" stroke="#3d2b2b" stroke-linecap="round" filter="url(#ink)" opacity="0.88">
+          <path d="M-40 120 C120 150 230 120 360 190 S560 260 720 250" stroke-width="22" />
+          <path d="M360 190 C420 120 480 100 560 90" stroke-width="11" />
+          <path d="M520 235 C560 300 640 340 700 380" stroke-width="9" />
+          <path d="M720 250 C790 245 840 225 900 230" stroke-width="6" />
+          <path d="M180 140 C210 210 250 250 300 290" stroke-width="8" />
+          <path d="M560 90 C600 70 640 70 680 60" stroke-width="4" />
+          <path d="M700 380 C730 400 750 420 770 450" stroke-width="3.5" />
+          <path d="M300 290 C320 320 330 340 360 360" stroke-width="3.5" />
+        </g>
+        <g filter="url(#wash)" opacity="0.95">
+          <use href="#flower" transform="translate(372 170) scale(1.15) rotate(10)" />
+          <use href="#flower" transform="translate(425 214) scale(0.95) rotate(40)" />
+          <use href="#flower" transform="translate(560 88) scale(1.05) rotate(-15)" />
+          <use href="#flower" transform="translate(610 64) scale(0.8) rotate(25)" />
+          <use href="#flower" transform="translate(686 58) scale(0.7)" />
+          <use href="#flower" transform="translate(520 120) scale(0.75) rotate(60)" />
+          <use href="#flower" transform="translate(660 248) scale(1.1) rotate(-30)" />
+          <use href="#flower" transform="translate(740 236) scale(0.9) rotate(15)" />
+          <use href="#flower" transform="translate(860 222) scale(0.85) rotate(-50)" />
+          <use href="#flower" transform="translate(905 238) scale(0.6) rotate(20)" />
+          <use href="#flower" transform="translate(600 318) scale(0.95) rotate(80)" />
+          <use href="#flower" transform="translate(700 384) scale(0.85) rotate(-10)" />
+          <use href="#flower" transform="translate(768 452) scale(0.7) rotate(35)" />
+          <use href="#flower" transform="translate(240 222) scale(0.9) rotate(-40)" />
+          <use href="#flower" transform="translate(305 296) scale(0.8) rotate(10)" />
+          <use href="#flower" transform="translate(358 362) scale(0.65) rotate(50)" />
+          <use href="#flower" transform="translate(130 148) scale(0.75) rotate(-20)" />
+          <use href="#bud" transform="translate(468 104) rotate(-30)" />
+          <use href="#bud" transform="translate(800 230) rotate(70)" />
+          <use href="#bud" transform="translate(640 340) rotate(130)" />
+          <use href="#bud" transform="translate(270 270) rotate(160)" />
+        </g>
+
+        <!-- red hanko seal: 禅 (zen) -->
+        <g transform="translate(1415 135) rotate(-4)" filter="url(#ink)">
+          <rect x="-34" y="-34" width="68" height="68" rx="6" fill="#b4372f" opacity="0.88" />
+          <text y="15" text-anchor="middle" font-size="44" fill="#f6e8e0" font-family="'Yu Mincho','Hiragino Mincho ProN','Noto Serif JP',serif">禅</text>
+        </g>
+        <!-- vertical title in the margin -->
+        <text x="1415" y="230" font-size="30" fill="#4e3236" opacity="0.8" writing-mode="tb" letter-spacing="14"
+          font-family="'Yu Mincho','Hiragino Mincho ProN','Noto Serif JP',serif">桜の庭</text>
+
+        <rect width="1600" height="900" filter="url(#paper)" />
+      </svg>
+
+      <span class="petal" style="left: 12%; animation-duration: 11s; animation-delay: -2s"></span>
+      <span class="petal" style="left: 27%; animation-duration: 14s; animation-delay: -7s; scale: 0.8"></span>
+      <span class="petal" style="left: 38%; animation-duration: 12s; animation-delay: -4s"></span>
+      <span class="petal" style="left: 46%; animation-duration: 16s; animation-delay: -11s; scale: 0.7"></span>
+      <span class="petal" style="left: 55%; animation-duration: 13s; animation-delay: -1s"></span>
+      <span class="petal" style="left: 63%; animation-duration: 15s; animation-delay: -9s; scale: 1.2"></span>
+      <span class="petal" style="left: 71%; animation-duration: 12s; animation-delay: -6s"></span>
+      <span class="petal" style="left: 20%; animation-duration: 17s; animation-delay: -13s; scale: 0.9"></span>
+      <span class="petal" style="left: 33%; animation-duration: 10s; animation-delay: -3s; scale: 0.6"></span>
+      <span class="petal" style="left: 50%; animation-duration: 18s; animation-delay: -15s"></span>
+
+      <div class="caption">
+        <b>ZEN GARDEN</b>
+        LOADING
+        <div class="track"><div id="progress"></div></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

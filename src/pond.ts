@@ -1,5 +1,5 @@
 import * as THREE from 'three';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+import { loadModel } from './gltf';
 import { POND, WATER_Y } from './layout';
 import { uTime, withWorldPos } from './shaders';
 
@@ -52,7 +52,7 @@ type Koi = { mesh: THREE.Mesh; speed: number; phase: number; ax: number; az: num
 
 // Koi swim slow loops under the surface. The body bends in a vertex shader.
 export async function createKoi(scene: THREE.Scene) {
-  const gltf = await new GLTFLoader().loadAsync(`${import.meta.env.BASE_URL}models/koi.glb`);
+  const gltf = await loadModel('koi');
   const src: THREE.Mesh[] = [];
   gltf.scene.traverse((o) => (o as THREE.Mesh).isMesh && src.push(o as THREE.Mesh));
 
