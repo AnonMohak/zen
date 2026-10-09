@@ -1,0 +1,79 @@
+:root {
+  color-scheme: light;
+  font-family: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #f1dcd6;
+}
+
+#app canvas {
+  display: block;
+}
+
+#loading {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: #f1dcd6;
+  color: #7a5a5f;
+  font-size: 1.1rem;
+  letter-spacing: 0.3em;
+  transition: opacity 2.4s ease;
+}
+
+#loading.done {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.title {
+  position: fixed;
+  left: 2.2rem;
+  bottom: 1.8rem;
+  margin: 0;
+  color: rgba(255, 255, 255, 0.85);
+  font-weight: 400;
+  font-size: 1rem;
+  letter-spacing: 0.35em;
+  text-shadow: 0 1px 12px rgba(80, 40, 50, 0.35);
+  pointer-events: none;
+}
+
+.title span {
+  display: block;
+  font-size: 2rem;
+  letter-spacing: 0.1em;
+  margin-bottom: 0.2rem;
+}
+
+#sound {
+  position: fixed;
+  right: 2rem;
+  bottom: 1.8rem;
+  padding: 0.55rem 1.1rem;
+  border: 1px solid rgba(255, 255, 255, 0.55);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(6px);
+  color: #fff;
+  font: inherit;
+  font-size: 0.85rem;
+  letter-spacing: 0.12em;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+#sound:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+#sound:focus-visible {
+  outline: 2px solid #fff;
+  outline-offset: 3px;
+}
