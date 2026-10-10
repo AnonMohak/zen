@@ -163,7 +163,7 @@ If the build fails, the loading caption changes to "Could not load the garden." 
 - Signed-distance functions: `sandSdf()` (rounded box), `templeSdf()` (temple footprint) and `pondE()` (elliptical distance to the pond).
 - `groundHeight(x, z)`: the terrain height. It digs the pond bowl, adds gentle rolling hills away from the sand, pond and temple, and raises the land toward the back (−z).
 
-The terrain mesh, the grass, the petals, the trees, the camera floor and the prop placement all use `groundHeight()`. Thus everything sits on the same surface. The ground shader in GLSL repeats the same sand rounded-box SDF.
+The terrain mesh, the grass, the petals, the trees, the camera floor and the prop placement all use `groundHeight()`. So everything sits on the same surface. The ground shader in GLSL repeats the same sand rounded-box SDF.
 
 The approximate plan (top view, +x to the right, +z toward the viewer):
 
